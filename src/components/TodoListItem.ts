@@ -5,8 +5,10 @@ interface TodoListItemProps {
 }
 
 export default function TodoListItem({ id, title, isDone }: TodoListItemProps) {
+  const isDraggable = isDone ? false : true;
+
   return `
-    <li class="todo-item">
+    <li class="todo-item ${isDraggable ? "draggable" : ""}" data-id="${id}">
       <input 
         type="checkbox" 
         data-id="${id}" 
