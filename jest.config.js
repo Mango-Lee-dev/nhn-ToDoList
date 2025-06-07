@@ -4,7 +4,10 @@ module.exports = {
 
   // 모듈 경로 매핑 (올바른 옵션명)
   moduleNameMapper: {
-    "^@/(.*)": "<rootDir>/src/$1",
+    // CSS 파일을 모킹
+    "\\.(css|less|scss|sass)$": "identity-obj-proxy",
+    // path alias 설정
+    "^@/(.*)$": "<rootDir>/src/$1",
   },
 
   // 테스트 파일 패턴
@@ -35,7 +38,7 @@ module.exports = {
   },
 
   // 모듈 파일 확장자
-  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json"],
+  moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "css"],
 
   // 테스트 환경 설정
   testEnvironmentOptions: {

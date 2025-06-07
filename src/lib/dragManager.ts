@@ -16,7 +16,16 @@ export class DragManager {
   }
 
   private showPreview() {
-    if (!this.draggedElement || !this.placeholder || this.isPreviewing) return;
+    if (
+      !this.draggedElement ||
+      !this.placeholder ||
+      this.isPreviewing ||
+      this.isOutsideDropZone({
+        clientX: this.lastMousePosition.x,
+        clientY: this.lastMousePosition.y,
+      } as MouseEvent)
+    )
+      return;
     this.isPreviewing = true;
 
     this.previewElement = this.draggedElement.cloneNode(true) as HTMLElement;
