@@ -10,12 +10,14 @@ export default class StateManager {
     this.state = {
       todoList: [],
       currentFilter: "all",
+      userOrder: [],
     };
     this.subscribers = new Map();
     this.selectors = new Map();
 
     this.registerSelector("todoList", (state) => state.todoList);
     this.registerSelector("currentFilter", (state) => state.currentFilter);
+    this.registerSelector("userOrder", (state) => state.userOrder);
 
     this.registerSelector("allTodos", (state) =>
       state.todoList.filter((todo) => !todo.isDeleted)
@@ -25,9 +27,6 @@ export default class StateManager {
     );
     this.registerSelector("completedTodos", (state) =>
       state.todoList.filter((todo) => !todo.isDeleted && todo.isDone)
-    );
-    this.registerSelector("deletedTodos", (state) =>
-      state.todoList.filter((todo) => todo.isDeleted)
     );
 
     this.registerSelector("activeTodos", (state) => {
@@ -43,6 +42,7 @@ export default class StateManager {
           return allTodos;
       }
     });
+
     this.registerSelector("filterCounts", (state) => {
       const allTodos = state.todoList.filter((todo) => !todo.isDeleted);
       return {
@@ -132,7 +132,13 @@ export default class StateManager {
         };
 
       case "TOGGLE_TODO":
-        const updatedTodos = state.todoList.map((todo) =>
+        const isDragged = state.userOrder.includes(action.payload.id);
+        const finalTodoList = isDragged
+          ? state.userOrder
+              .map((id) => state.todoList.find((todo) => todo.id === id)!)
+              .filter(Boolean)
+          : state.todoList;
+        const updatedTodos = finalTodoList.map((todo) =>
           todo.id === action.payload.id
             ? {
                 ...todo,
@@ -183,18 +189,11 @@ export default class StateManager {
           ),
         };
 
-      case "RESTORE_TODO":
+      case "REORDER_TODOS":
+        const { newOrder } = action.payload;
         return {
           ...state,
-          todoList: state.todoList.map((todo) =>
-            todo.id === action.payload.id
-              ? {
-                  ...todo,
-                  isDeleted: false,
-                  updatedAt: new Date().toISOString(),
-                }
-              : todo
-          ),
+          userOrder: newOrder,
         };
 
       default:

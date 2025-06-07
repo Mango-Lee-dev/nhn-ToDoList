@@ -5,6 +5,7 @@ export type TodoFilter = "all" | "pending" | "completed";
 export interface State {
   todoList: TodoItem[];
   currentFilter: TodoFilter;
+  userOrder: string[];
 }
 
 export type Subscriber = (state: State) => void;
@@ -18,7 +19,8 @@ export type Action =
   | UpdateTodoAction
   | RestoreTodoAction
   | SetFilterAction
-  | ClearCompletedAction;
+  | ClearCompletedAction
+  | ReorderTodosAction;
 
 export interface AddTodoAction {
   type: "ADD_TODO";
@@ -65,4 +67,11 @@ export interface SetFilterAction {
 
 export interface ClearCompletedAction {
   type: "CLEAR_COMPLETED";
+}
+
+export interface ReorderTodosAction {
+  type: "REORDER_TODOS";
+  payload: {
+    newOrder: string[];
+  };
 }

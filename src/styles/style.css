@@ -67,6 +67,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  border: 1px solid #ccc;
+  padding: 50px;
 }
 
 .todo-item .check-mark {
@@ -182,4 +184,11 @@
   font-size: 16px;
   font-weight: bold;
   cursor: pointer;
+}
+
+.todo-item.selected {
+  background-color: #000;
+  color: #fff;
+  position: absolute;
+  z-index: 1000;
 }
