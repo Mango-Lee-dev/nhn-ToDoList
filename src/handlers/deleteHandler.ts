@@ -22,22 +22,15 @@ export function setupDeleteHandlers(stateManager: StateManager) {
     });
   });
 
-  deleteButtons.forEach((button) => {
-    button.addEventListener("click", (e) => {
-      e.preventDefault();
-      e.stopPropagation();
+  const clearCompletedButton = document.querySelector(
+    ".todo-list-filter-clear-completed"
+  );
 
-      const target = e.target as HTMLElement;
-      const id =
-        target.getAttribute("data-id") ||
-        target.closest(".delete-button")?.getAttribute("data-id");
-
-      if (id) {
-        stateManager.dispatch({
-          type: "DELETE_TODO",
-          payload: { id },
-        });
-      }
+  clearCompletedButton?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    stateManager.dispatch({
+      type: "CLEAR_COMPLETED",
     });
   });
 }

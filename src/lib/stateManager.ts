@@ -1,23 +1,26 @@
 import { State, Subscriber, Selector, Action, TodoFilter } from "@/types/state";
 import { TodoItem } from "@/types/items";
 
+type SelectorReturnType =
+  | TodoItem[]
+  | TodoFilter
+  | { all: number; pending: number; completed: number };
+
 export default class StateManager {
   private state: State;
   private subscribers: Map<string, Subscriber>;
-  private selectors: Map<string, Selector<any>>;
+  private selectors: Map<string, Selector<SelectorReturnType>>;
 
   constructor() {
     this.state = {
       todoList: [],
       currentFilter: "all",
-      userOrder: [],
     };
     this.subscribers = new Map();
     this.selectors = new Map();
 
     this.registerSelector("todoList", (state) => state.todoList);
     this.registerSelector("currentFilter", (state) => state.currentFilter);
-    this.registerSelector("userOrder", (state) => state.userOrder);
 
     this.registerSelector("allTodos", (state) =>
       state.todoList.filter((todo) => !todo.isDeleted)
@@ -57,15 +60,15 @@ export default class StateManager {
     return { ...this.state };
   }
 
-  select<T>(selectorName: string): T {
+  select<T extends SelectorReturnType>(selectorName: string): T {
     const selector = this.selectors.get(selectorName);
     if (!selector) {
       throw new Error(`Selector '${selectorName}' not found`);
     }
-    return selector(this.state);
+    return selector(this.state) as T;
   }
 
-  registerSelector<T>(name: string, selector: Selector<T>): void {
+  registerSelector(name: string, selector: Selector<SelectorReturnType>): void {
     this.selectors.set(name, selector);
   }
 
@@ -116,49 +119,83 @@ export default class StateManager {
         };
 
       case "ADD_TODO":
+        const newTodo = {
+          id: this.generateId(),
+          title: action.payload.title,
+          isDone: false,
+          isDeleted: false,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        const pendingTodos = state.todoList.filter(
+          (todo) => !todo.isDone && !todo.isDeleted
+        );
+        const completedTodos = state.todoList.filter(
+          (todo) => todo.isDone && !todo.isDeleted
+        );
+        const deletedTodos = state.todoList.filter((todo) => todo.isDeleted);
+
         return {
           ...state,
           todoList: [
-            ...state.todoList,
-            {
-              id: this.generateId(),
-              title: action.payload.title,
-              isDone: false,
-              isDeleted: false,
-              createdAt: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            },
+            newTodo,
+            ...pendingTodos,
+            ...completedTodos,
+            ...deletedTodos,
           ],
         };
 
       case "TOGGLE_TODO":
-        const isDragged = state.userOrder.includes(action.payload.id);
-        const finalTodoList = isDragged
-          ? state.userOrder
-              .map((id) => state.todoList.find((todo) => todo.id === id)!)
-              .filter(Boolean)
-          : state.todoList;
-        const updatedTodos = finalTodoList.map((todo) =>
-          todo.id === action.payload.id
-            ? {
-                ...todo,
-                isDone: !todo.isDone,
-                updatedAt: new Date().toISOString(),
-              }
-            : todo
+        const todoIndex = state.todoList.findIndex(
+          (todo) => todo.id === action.payload.id
         );
+        if (todoIndex === -1) return state;
 
-        const pendingTodos = updatedTodos.filter(
+        const updatedTodo = {
+          ...state.todoList[todoIndex],
+          isDone: !state.todoList[todoIndex].isDone,
+          updatedAt: new Date().toISOString(),
+        };
+
+        const newTodoList = [...state.todoList];
+        newTodoList[todoIndex] = updatedTodo;
+
+        const pendingItems = newTodoList.filter(
           (todo) => !todo.isDone && !todo.isDeleted
         );
-        const completedTodos = updatedTodos.filter(
+        const completedItems = newTodoList.filter(
           (todo) => todo.isDone && !todo.isDeleted
         );
-        const deletedTodos = updatedTodos.filter((todo) => todo.isDeleted);
+        const deletedItems = newTodoList.filter((todo) => todo.isDeleted);
+
+        let finalPendingItems, finalCompletedItems;
+
+        if (updatedTodo.isDone) {
+          finalPendingItems = pendingItems;
+          finalCompletedItems = [
+            ...completedItems.filter((todo) => todo.id !== updatedTodo.id),
+            updatedTodo,
+          ];
+        } else {
+          const otherPendingItems = pendingItems.filter(
+            (todo) => todo.id !== updatedTodo.id
+          );
+          const sortedByCreatedAt = [...otherPendingItems, updatedTodo].sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          );
+          finalPendingItems = sortedByCreatedAt;
+          finalCompletedItems = completedItems;
+        }
 
         return {
           ...state,
-          todoList: [...pendingTodos, ...completedTodos, ...deletedTodos],
+          todoList: [
+            ...finalPendingItems,
+            ...finalCompletedItems,
+            ...deletedItems,
+          ],
         };
 
       case "DELETE_TODO":
@@ -191,11 +228,14 @@ export default class StateManager {
 
       case "REORDER_TODOS":
         const { newOrder } = action.payload;
+        const reorderedTodos = newOrder
+          .map((id) => state.todoList.find((todo) => todo.id === id)!)
+          .filter(Boolean);
+        const deletedTodoList = state.todoList.filter((todo) => todo.isDeleted);
         return {
           ...state,
-          userOrder: newOrder,
+          todoList: [...reorderedTodos, ...deletedTodoList],
         };
-
       default:
         return state;
     }

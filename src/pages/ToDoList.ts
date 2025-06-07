@@ -3,6 +3,7 @@ import "@/styles/style.css";
 import stateManager from "@/lib";
 import { TodoItem } from "@/types/items";
 import ToDoListFooter from "@/components/TodoListFooter";
+import { TodoFilter } from "@/types/state";
 
 interface FilterCounts {
   all: number;
@@ -12,27 +13,8 @@ interface FilterCounts {
 
 export default function ToDoList() {
   const todoList = stateManager.select<TodoItem[]>("activeTodos");
-  const currentFilter = stateManager.select<string>("currentFilter");
+  const currentFilter = stateManager.select<TodoFilter>("currentFilter");
   const filterCounts = stateManager.select<FilterCounts>("filterCounts");
-  const userOrder = stateManager.select<string[]>("userOrder");
-
-  const sortedTodoList = [...todoList].sort((a, b) => {
-    const aIndex = userOrder.indexOf(a.id);
-    const bIndex = userOrder.indexOf(b.id);
-
-    if (aIndex !== -1 && bIndex !== -1) {
-      return aIndex - bIndex;
-    }
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-
-    if (!userOrder.includes(a.id) && !userOrder.includes(b.id)) {
-      if (a.isDone !== b.isDone) {
-        return a.isDone ? 1 : -1;
-      }
-    }
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
 
   return `
     <div class="todo-list-container">
@@ -44,7 +26,7 @@ export default function ToDoList() {
         <button class="todo-list-input-button">추가</button>
       </div>
       <ul class="todo-list-items">
-        ${sortedTodoList
+        ${todoList
           .map((todo) =>
             TodoListItem({
               id: todo.id,
