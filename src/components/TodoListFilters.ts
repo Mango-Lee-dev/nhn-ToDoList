@@ -1,5 +1,3 @@
-import { TodoItem } from "@/types/items";
-
 interface ToDoListFooterProps {
   allTodoListNumber: number;
   completedTodoListNumber: number;
@@ -7,7 +5,7 @@ interface ToDoListFooterProps {
   pendingTodoListNumber: number;
 }
 
-export default function ToDoListFooter({
+export default function ToDoListFilters({
   allTodoListNumber,
   completedTodoListNumber,
   currentFilter,

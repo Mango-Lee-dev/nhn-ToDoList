@@ -22,36 +22,33 @@ export default class StateManager {
     this.registerSelector("todoList", (state) => state.todoList);
     this.registerSelector("currentFilter", (state) => state.currentFilter);
 
-    this.registerSelector("allTodos", (state) =>
-      state.todoList.filter((todo) => !todo.isDeleted)
-    );
     this.registerSelector("pendingTodos", (state) =>
-      state.todoList.filter((todo) => !todo.isDeleted && !todo.isDone)
+      state.todoList.filter((todo) => !todo.isDone)
     );
     this.registerSelector("completedTodos", (state) =>
-      state.todoList.filter((todo) => !todo.isDeleted && todo.isDone)
+      state.todoList.filter((todo) => todo.isDone)
     );
 
     this.registerSelector("activeTodos", (state) => {
-      const allTodos = state.todoList.filter((todo) => !todo.isDeleted);
-
       switch (state.currentFilter) {
         case "pending":
-          return allTodos.filter((todo) => !todo.isDone);
+          return state.todoList.filter((todo) => !todo.isDone);
         case "completed":
-          return allTodos.filter((todo) => todo.isDone);
+          return state.todoList.filter((todo) => todo.isDone);
         case "all":
         default:
-          return allTodos;
+          return state.todoList;
       }
     });
 
     this.registerSelector("filterCounts", (state) => {
-      const allTodos = state.todoList.filter((todo) => !todo.isDeleted);
+      const pendingTodos = state.todoList.filter((todo) => !todo.isDone);
+      const completedTodos = state.todoList.filter((todo) => todo.isDone);
+
       return {
-        all: allTodos.length,
-        pending: allTodos.filter((todo) => !todo.isDone).length,
-        completed: allTodos.filter((todo) => todo.isDone).length,
+        all: state.todoList.length,
+        pending: pendingTodos.length,
+        completed: completedTodos.length,
       };
     });
   }
@@ -107,15 +104,7 @@ export default class StateManager {
       case "CLEAR_COMPLETED":
         return {
           ...state,
-          todoList: state.todoList.map((todo) =>
-            todo.isDone && !todo.isDeleted
-              ? {
-                  ...todo,
-                  isDeleted: true,
-                  updatedAt: new Date().toISOString(),
-                }
-              : todo
-          ),
+          todoList: state.todoList.filter((todo) => !todo.isDone),
         };
 
       case "ADD_TODO":
@@ -123,27 +112,16 @@ export default class StateManager {
           id: this.generateId(),
           title: action.payload.title,
           isDone: false,
-          isDeleted: false,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
         };
 
-        const pendingTodos = state.todoList.filter(
-          (todo) => !todo.isDone && !todo.isDeleted
-        );
-        const completedTodos = state.todoList.filter(
-          (todo) => todo.isDone && !todo.isDeleted
-        );
-        const deletedTodos = state.todoList.filter((todo) => todo.isDeleted);
+        const pendingTodos = state.todoList.filter((todo) => !todo.isDone);
+        const completedTodos = state.todoList.filter((todo) => todo.isDone);
 
         return {
           ...state,
-          todoList: [
-            newTodo,
-            ...pendingTodos,
-            ...completedTodos,
-            ...deletedTodos,
-          ],
+          todoList: [newTodo, ...pendingTodos, ...completedTodos],
         };
 
       case "TOGGLE_TODO":
@@ -161,13 +139,8 @@ export default class StateManager {
         const newTodoList = [...state.todoList];
         newTodoList[todoIndex] = updatedTodo;
 
-        const pendingItems = newTodoList.filter(
-          (todo) => !todo.isDone && !todo.isDeleted
-        );
-        const completedItems = newTodoList.filter(
-          (todo) => todo.isDone && !todo.isDeleted
-        );
-        const deletedItems = newTodoList.filter((todo) => todo.isDeleted);
+        const pendingItems = newTodoList.filter((todo) => !todo.isDone);
+        const completedItems = newTodoList.filter((todo) => todo.isDone);
 
         let finalPendingItems, finalCompletedItems;
 
@@ -191,38 +164,14 @@ export default class StateManager {
 
         return {
           ...state,
-          todoList: [
-            ...finalPendingItems,
-            ...finalCompletedItems,
-            ...deletedItems,
-          ],
+          todoList: [...finalPendingItems, ...finalCompletedItems],
         };
 
       case "DELETE_TODO":
         return {
           ...state,
-          todoList: state.todoList.map((todo) =>
-            todo.id === action.payload.id
-              ? {
-                  ...todo,
-                  isDeleted: true,
-                  updatedAt: new Date().toISOString(),
-                }
-              : todo
-          ),
-        };
-
-      case "UPDATE_TODO":
-        return {
-          ...state,
-          todoList: state.todoList.map((todo) =>
-            todo.id === action.payload.id
-              ? {
-                  ...todo,
-                  title: action.payload.title,
-                  updatedAt: new Date().toISOString(),
-                }
-              : todo
+          todoList: state.todoList.filter(
+            (todo) => todo.id !== action.payload.id
           ),
         };
 
@@ -231,10 +180,9 @@ export default class StateManager {
         const reorderedTodos = newOrder
           .map((id) => state.todoList.find((todo) => todo.id === id)!)
           .filter(Boolean);
-        const deletedTodoList = state.todoList.filter((todo) => todo.isDeleted);
         return {
           ...state,
-          todoList: [...reorderedTodos, ...deletedTodoList],
+          todoList: [...reorderedTodos],
         };
       default:
         return state;
@@ -264,11 +212,5 @@ export default class StateManager {
 
   getCurrentFilter(): TodoFilter {
     return this.state.currentFilter;
-  }
-
-  debug(): void {
-    console.log("Current State:", this.state);
-    console.log("Subscribers:", Array.from(this.subscribers.keys()));
-    console.log("Selectors:", Array.from(this.selectors.keys()));
   }
 }

@@ -24,7 +24,6 @@ describe("StateManager 테스트", () => {
     const state = stateManager.getState();
     expect(state.todoList).toHaveLength(1);
     expect(state.todoList[0].title).toBe("아침밥 먹고 운동하러 가기");
-    expect(state.todoList[0].isDeleted).toBe(false);
     expect(state.todoList[0].isDone).toBe(false);
   });
 
@@ -66,8 +65,7 @@ describe("StateManager 테스트", () => {
     });
 
     const state = stateManager.getState();
-    expect(state.todoList[0].isDeleted).toBe(true);
-    expect(state.todoList[0].isDone).toBe(false);
+    expect(state.todoList).toHaveLength(0);
   });
 
   test("셀렉터가 올바르게 작동해야 함", () => {
@@ -93,13 +91,47 @@ describe("StateManager 테스트", () => {
       },
     });
 
-    const activeTodos = stateManager.select<TodoItem[]>("activeTodos");
+    const allTodos = stateManager.select<TodoItem[]>("allTodos");
+    const pendingTodos = stateManager.select<TodoItem[]>("pendingTodos");
     const completedTodos = stateManager.select<TodoItem[]>("completedTodos");
 
-    expect(activeTodos).toHaveLength(1);
+    expect(allTodos).toHaveLength(2);
+    expect(pendingTodos).toHaveLength(1);
     expect(completedTodos).toHaveLength(1);
-    expect(activeTodos[0]?.title).toBe("저녁밥 먹고 운동하러 가기2");
-    expect(completedTodos[0]?.title).toBe("저녁밥 먹고 운동하러 가기");
+    expect(pendingTodos[0]?.title).toBe("저녁밥 먹고 운동하러 가기");
+    expect(completedTodos[0]?.title).toBe("저녁밥 먹고 운동하러 가기2");
+  });
+
+  test("할 일 순서 변경 테스트", () => {
+    stateManager.dispatch({
+      type: "ADD_TODO",
+      payload: {
+        title: "저녁밥 먹고 운동하러 가기",
+      },
+    });
+
+    stateManager.dispatch({
+      type: "ADD_TODO",
+      payload: {
+        title: "저녁밥 먹고 운동하러 가기2",
+      },
+    });
+
+    const todos = stateManager.getState().todoList;
+    const originalOrder = todos.map((todo) => todo.id);
+
+    const newOrder = [originalOrder[1], originalOrder[0]];
+
+    stateManager.dispatch({
+      type: "REORDER_TODOS",
+      payload: {
+        newOrder,
+      },
+    });
+
+    const reorderedTodos = stateManager.select<TodoItem[]>("allTodos");
+    expect(reorderedTodos[0].id).toBe(originalOrder[1]);
+    expect(reorderedTodos[1].id).toBe(originalOrder[0]);
   });
 
   test("StateManager 구독자가 상태 변화를 감지해야 함", () => {

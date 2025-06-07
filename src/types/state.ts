@@ -15,7 +15,6 @@ export type Action =
   | AddTodoAction
   | ToggleTodoAction
   | DeleteTodoAction
-  | UpdateTodoAction
   | SetFilterAction
   | ClearCompletedAction
   | ReorderTodosAction;
@@ -38,14 +37,6 @@ export interface DeleteTodoAction {
   type: "DELETE_TODO";
   payload: {
     id: string;
-  };
-}
-
-export interface UpdateTodoAction {
-  type: "UPDATE_TODO";
-  payload: {
-    id: string;
-    title: string;
   };
 }
 
