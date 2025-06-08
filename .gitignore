@@ -12,3 +12,4 @@ yarn-error.log*
 .DS_Store
 .readme.md
 node_modules
+readme.md

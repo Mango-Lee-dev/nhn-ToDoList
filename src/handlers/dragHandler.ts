@@ -1,9 +1,7 @@
-import { DragManager } from "@/lib/dragManager";
-import StateManager from "@/lib/stateManager";
+import { dragManager } from "@/lib";
 
-export function setupDragHandlers(stateManager: StateManager) {
+export function setupDragHandlers() {
   const todoItems = document.querySelectorAll(".todo-item");
-  const dragManager = new DragManager(stateManager);
 
   todoItems.forEach((item) => {
     item.addEventListener("mousedown", (e) => {

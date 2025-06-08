@@ -1,5 +1,5 @@
 import StateManager from "./stateManager";
+import DragManager from "./dragManager";
 
 export const stateManager = new StateManager();
-
-export default stateManager;
+export const dragManager = new DragManager(stateManager);

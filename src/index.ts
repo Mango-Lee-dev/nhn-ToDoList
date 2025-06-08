@@ -1,5 +1,5 @@
 import ToDoList from "@/pages/ToDoList";
-import stateManager from "./lib";
+import { stateManager } from "./lib";
 import { setupInputHandlers } from "./handlers/inputHandler";
 import { setupCheckboxHandlers } from "./handlers/checkboxHandler";
 import { setupDeleteHandlers } from "./handlers/deleteHandler";
@@ -18,7 +18,7 @@ function attachEventListeners() {
   setupCheckboxHandlers(stateManager);
   setupDeleteHandlers(stateManager);
   setupFilterHandlers(stateManager);
-  setupDragHandlers(stateManager);
+  setupDragHandlers();
 }
 
 stateManager.subscribe("app", render);

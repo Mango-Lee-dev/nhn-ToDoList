@@ -91,11 +91,11 @@ describe("StateManager 테스트", () => {
       },
     });
 
-    const allTodos = stateManager.select<TodoItem[]>("allTodos");
+    const todoList = stateManager.select<TodoItem[]>("todoList");
     const pendingTodos = stateManager.select<TodoItem[]>("pendingTodos");
     const completedTodos = stateManager.select<TodoItem[]>("completedTodos");
 
-    expect(allTodos).toHaveLength(2);
+    expect(todoList).toHaveLength(2);
     expect(pendingTodos).toHaveLength(1);
     expect(completedTodos).toHaveLength(1);
     expect(pendingTodos[0]?.title).toBe("저녁밥 먹고 운동하러 가기");
@@ -129,7 +129,7 @@ describe("StateManager 테스트", () => {
       },
     });
 
-    const reorderedTodos = stateManager.select<TodoItem[]>("allTodos");
+    const reorderedTodos = stateManager.select<TodoItem[]>("todoList");
     expect(reorderedTodos[0].id).toBe(originalOrder[1]);
     expect(reorderedTodos[1].id).toBe(originalOrder[0]);
   });

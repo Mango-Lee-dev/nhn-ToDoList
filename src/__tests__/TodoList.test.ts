@@ -21,6 +21,17 @@ describe("input, delete, toggle 테스트", () => {
     expect(todoListHTML).toContain("Clear completed");
   });
 
+  test("input에 아무것도 입력하지 않고 추가 버튼을 누르면 할 일이 추가되지 않아야 함", () => {
+    const todoListHTML = ToDoList();
+    document.body.innerHTML = todoListHTML;
+    const input = document.querySelector("input");
+    const addButton = document.querySelector("button");
+    input?.dispatchEvent(new Event("input"));
+    addButton?.dispatchEvent(new Event("click"));
+    const todoList = stateManager.select("todoList");
+    expect(todoList).toHaveLength(0);
+  });
+
   test("StateManager를 통한 할 일 추가 테스트", () => {
     const initialTodos = stateManager.select("activeTodos");
     expect(initialTodos).toHaveLength(0);
@@ -91,8 +102,6 @@ describe("Filter 테스트", () => {
   beforeEach(() => {
     stateManager = new StateManager();
     document.body.innerHTML = "";
-
-    // 할일 추가
     stateManager.dispatch({
       type: "ADD_TODO",
       payload: {
@@ -114,8 +123,8 @@ describe("Filter 테스트", () => {
       },
     });
 
-    const allTodos = stateManager.select("allTodos");
-    expect(allTodos).toHaveLength(3);
+    const todoList = stateManager.select("todoList");
+    expect(todoList).toHaveLength(3);
   });
 
   test("Active 필터 테스트", () => {
@@ -174,7 +183,7 @@ describe("Filter 테스트", () => {
     });
 
     stateManager.setFilter("all");
-    const allFilteredTodos = stateManager.select("allTodos");
+    const allFilteredTodos = stateManager.select("todoList");
     expect(allFilteredTodos).toHaveLength(3);
 
     stateManager.setFilter("pending");
@@ -187,10 +196,10 @@ describe("Filter 테스트", () => {
   });
 
   test("Items 갯수 테스트", () => {
-    const allTodos = stateManager.select("allTodos");
+    const todoList = stateManager.select("todoList");
     const filterCounts = stateManager.select("filterCounts");
 
-    expect(allTodos).toHaveLength(3);
+    expect(todoList).toHaveLength(3);
     expect(filterCounts.all).toBe(3);
     expect(filterCounts.pending).toBe(3);
     expect(filterCounts.completed).toBe(0);

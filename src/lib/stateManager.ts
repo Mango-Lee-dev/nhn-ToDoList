@@ -213,4 +213,16 @@ export default class StateManager {
   getCurrentFilter(): TodoFilter {
     return this.state.currentFilter;
   }
+
+  resetState(): void {
+    if (process.env.NODE_ENV !== "production") {
+      this.state = {
+        todoList: [],
+        currentFilter: "all",
+      };
+      this.notifySubscribers();
+    } else {
+      console.warn("resetState는 개발환경(테스트)에서만 사용 가능합니다.");
+    }
+  }
 }
