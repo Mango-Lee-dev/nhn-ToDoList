@@ -57,3 +57,9 @@ export interface ReorderTodosAction {
     newOrder: string[];
   };
 }
+
+export interface FilterCounts {
+  all: number;
+  completed: number;
+  pending: number;
+}

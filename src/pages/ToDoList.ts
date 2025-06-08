@@ -1,15 +1,9 @@
 import "@/styles/style.css";
 import TodoListItem from "@/components/TodoListItem";
-import stateManager from "@/lib";
+import { stateManager } from "@/lib";
 import { TodoItem } from "@/types/items";
-import { TodoFilter } from "@/types/state";
+import { FilterCounts, TodoFilter } from "@/types/state";
 import ToDoListFilters from "@/components/TodoListFilters";
-
-interface FilterCounts {
-  all: number;
-  completed: number;
-  pending: number;
-}
 
 export default function ToDoList() {
   const todoList = stateManager.select<TodoItem[]>("activeTodos");

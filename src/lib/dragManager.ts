@@ -1,6 +1,6 @@
 import StateManager from "./stateManager";
 
-export class DragManager {
+export default class DragManager {
   private stateManager: StateManager;
   private draggedElement: HTMLElement | null = null;
   private placeholder: HTMLElement | null = null;
